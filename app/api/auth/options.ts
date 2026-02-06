@@ -11,7 +11,7 @@ export const { handlers , signIn , signOut , auth } = NextAuth({
   providers: [
     Resend({
       from: env.EMAIL_FROM,
-      apiKey: env.AUTH_RESEND_KEY,
+      apiKey: env.RESEND_API_KEY,
     }),
     GoogleProvider({
       clientId: env.GOOGLE_CLIENT_ID,

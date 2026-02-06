@@ -3,7 +3,7 @@ import { z } from "zod";
 const schema = z.object({
   DATABASE_URL: z.string(),
   EMAIL_FROM: z.string(),
-  AUTH_RESEND_KEY: z.string(),
+  RESEND_API_KEY: z.string(),
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),
   GITHUB_CLIENT_ID: z.string().optional(),
