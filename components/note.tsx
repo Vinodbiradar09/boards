@@ -338,12 +338,12 @@ export function Note({
         // Focus highlight when any child is focused/being typed into
         "focus-within:ring-2 focus-within:ring-sky-500 dark:focus-within:ring-sky-400 focus-within:ring-offset-1 focus-within:ring-offset-white dark:focus-within:ring-offset-zinc-900",
         // Light theme variant
-        "shadow-[-5px_14px_20px_-12px_rgba(0,0,0,0.18),_5px_14px_20px_-12px_rgba(0,0,0,0.18),_0_24px_40px_-22px_rgba(0,0,0,0.12)]",
+        "[-5px_14px_20px_-12px_rgba(0,0,0,0.18),5px_14px_20px_-12px_rgba(0,0,0,0.18),0_24px_40px_-22px_rgba(0,0,0,0.12)]",
         // Dark theme variant
-        "dark:shadow-[-5px_14px_20px_-12px_rgba(0,0,0,0.38),_5px_14px_20px_-12px_rgba(0,0,0,0.38),_0_26px_42px_-22px_rgba(0,0,0,0.24)]",
+        "[-5px_14px_20px_-12px_rgba(0,0,0,0.38),5px_14px_20px_-12px_rgba(0,0,0,0.38),0_26px_42px_-22px_rgba(0,0,0,0.24)]",
         // Minimal top sticky shade
         "before:content-[''] before:absolute before:inset-x-0 before:top-0 before:h-1 before:opacity-20 before:pointer-events-none",
-        "before:bg-gradient-to-b before:from-black/5 before:to-transparent dark:before:from-white/5",
+        "before:bg-linear-to-b before:from-black/5 before:to-transparent dark:before:from-white/5",
         className
       )}
       data-testid="note-card"
@@ -351,7 +351,7 @@ export function Note({
       onBlurCapture={() => {}}
       style={style}
     >
-      <div className="flex items-start justify-between mb-2 flex-shrink-0">
+      <div className="flex items-start justify-between mb-2 shrink-0">
         <div className="flex-1 min-w-0 flex items-center space-x-2">
           <Avatar className="h-7 w-7">
             <AvatarFallback className="bg-white/50 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 text-sm font-semibold">
@@ -360,7 +360,7 @@ export function Note({
                 : note.user.email.charAt(0).toUpperCase()}
             </AvatarFallback>
             <AvatarImage
-              className="border-1 rounded-full border-zinc-50/50 dark:border-zinc-800"
+              className="border rounded-full border-zinc-50/50 dark:border-zinc-800"
               src={note.user.image ? note.user.image : undefined}
               alt={note.user.name || ""}
             />

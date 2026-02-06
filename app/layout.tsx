@@ -16,10 +16,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Gumboard",
-  description: "Keep on top of your team's to-dos",
+  title: "Board",
+  description: "Keep your employess on top of board",
   icons: {
-    icon: "/logo/gumboard.svg",
+    icon: "/board.png",
   },
 };
 
