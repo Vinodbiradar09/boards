@@ -1,7 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
+/* @custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
@@ -115,6 +115,7 @@
   --sidebar-ring: oklch(0.551 0.027 264.364);
 }
 
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -122,4 +123,43 @@
   body {
     @apply bg-background text-foreground;
   }
+} */
+
+html.dark {
+  background-color: #09090b;
+}
+
+/* Dotted background utility */
+.bg-dots {
+  --dots-color: rgba(0, 0, 0, 0.06);
+  --dots-size: 1.5px;
+  --dots-space: 20px;
+  background-image: radial-gradient(
+    var(--dots-color) var(--dots-size),
+    transparent var(--dots-size)
+  );
+  background-size: var(--dots-space) var(--dots-space);
+}
+
+.dark .bg-dots {
+  --dots-color: rgba(255, 255, 255, 0.08);
+}
+
+.dark input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-text-fill-color: #000 !important;
+  transition: background-color 5000s ease-in-out 0s !important;
+}
+
+.dark input:-webkit-autofill,
+.dark input:-webkit-autofill:hover,
+.dark input:-webkit-autofill:focus,
+.dark input:-webkit-autofill:active {
+  -webkit-text-fill-color: #fff !important;
 }
