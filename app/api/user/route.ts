@@ -10,7 +10,7 @@ export async function GET() {
     if (!session?.user?.id) {
       return NextResponse.json(
         { message: "Unauthorized", success: false },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -34,7 +34,7 @@ export async function GET() {
     if (!user) {
       return NextResponse.json(
         { message: "User not found", success: false },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -47,59 +47,63 @@ export async function GET() {
     console.error("Error fetching user:", error);
     return NextResponse.json(
       { message: "Internal server error", success: false },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
-export async function POST(req : NextRequest ) {
+export async function POST(req: NextRequest) {
   try {
     // const session = await auth();
-    const session = "2125fbd2-db6a-4975-8380-715fd74cd36f";
-    // if(!session?.user?.id){
-    //   return NextResponse.json({
-    //     message : "user not found",
-    //   },{status : 404})
+    const session = "4be3415e-ff98-4484-8190-c4f8d8308f0b";
+    // if (!session?.user?.id) {
+    //   return NextResponse.json({ success: false }, { status: 401 });
     // }
     const body = await req.json();
-    if(!Array.isArray(body.emails)){
-      return NextResponse.json({
-        message : "incorrect data structure",
-        success : false,
-      },{status : 402})
+    if (!Array.isArray(body.emails)) {
+      return NextResponse.json(
+        {
+          message: "invalid playload",
+          success: false,
+        },
+        { status: 400 },
+      );
     }
     const organization = await prisma.organization.create({
-      data : {
-        name : body.orgName,
-        ownerId : session,
+      data: {
+        name: body.orgName,
+        ownerId: session,
       },
-    })
-    if(!organization){
-      return NextResponse.json({
-        message : "failed to create the organization",
-        success : false,
-      },{status : 401});
-    }
-    const set = new Set(body.emails);
-    const emails = [...set];
-    const result = await client.publishJSON({
-      url : "https://nonobvious-runtishly-regine.ngrok-free.dev/api/invites",
-      body : {
+    });
+
+    client.publishJSON({
+      url: "https://nonobvious-runtishly-regine.ngrok-free.dev/api/invites",
+      body: {
         organization,
-        ownerId : organization.ownerId,
-        emails,
-      }
-    })
-    console.log("res" ,result);
-    return NextResponse.json({
-      message : "your organization has successfully created",
-      success : true,
-    },{status : 200});
+        user : {
+          id : session,
+          name : "vinod",
+          email : "vinod07@gmail.com",
+        },
+        emails : [... new Set(body.emails)],
+      },
+    }).catch(console.error);
+    return NextResponse.json(
+      {
+        message: "your organization has successfully created",
+        success: true,
+        organization,
+      },
+      { status: 200 },
+    );
   } catch (error) {
-      console.log(error);
-      return NextResponse.json({
-        message : "internal server error",
-        success : false
-      },{status : 500})
+    console.log(error);
+    return NextResponse.json(
+      {
+        message: "internal server error",
+        success: false,
+      },
+      { status: 500 },
+    );
   }
 }

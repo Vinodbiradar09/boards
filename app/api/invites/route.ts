@@ -1,46 +1,34 @@
 import prisma from "@/lib/prisma";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { verifySignatureAppRouter } from "@upstash/qstash/nextjs";
 import { resend } from "@/lib/resend";
 import { env } from "@/lib/types/env";
 
 async function handler(req: Request) {
   try {
-    const n = "vinod";
-    const e = "vinod@";
-    // const session = await auth();
-    // if (!session || !session.user?.id) {
-    //   return NextResponse.json({
-    //     message: "user not found",
-    //     success: false,
-    //   });
-    // }
-    const jobData = await req.json();
-    console.log("jobData", jobData);
-    if (!Array.isArray(jobData.emails)) {
+    const { emails, organization, user } = await req.json();
+    if (!Array.isArray(emails) || emails.length === 0) {
       return NextResponse.json({
         message: "please send emails in array",
         success: false,
       });
     }
-    if (jobData.emails.length > 0) {
-      for (const email of jobData.emails) {
-        try {
-          const invite = await prisma.organizationInvite.create({
-            data: {
-              email,
-              organizationId: jobData.organization.id,
-              invitedBy: jobData.ownerId,
-            },
-          });
-          const { data, error } = await resend.emails.send({
-            from: env.EMAIL_FROM!,
-            to: email,
-            subject: `${n} invited you to join ${jobData.organization.name}`,
-            html: `
+    const invited = await prisma.organizationInvite.createManyAndReturn({
+      data: emails.map((email : string)=>({
+        email,
+        organizationId : organization.id,
+        invitedBy : organization.ownerId,
+      })),
+      skipDuplicates: true,
+    });
+    const batch = invited.map((invite)=>({
+        from : env.EMAIL_FROM,
+        to : invite.email,
+        subject : `${user.name} invited you to join ${organization.name}`,
+         html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2>You&apos;re invited to join ${jobData.organization.name}!</h2>
-              <p>${n} (${e}) has invited you to join their organization on Gumboard.</p>
+              <h2>You&apos;re invited to join ${organization.name}!</h2>
+              <p>${user.name} (${user.email}) has invited you to join their organization on Gumboard.</p>
               <p>Click the link below to accept the invitation:</p>
               <a href="${"hello"}/invite/accept?token=${invite.id}"
                  style="background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
@@ -51,25 +39,12 @@ async function handler(req: Request) {
               </p>
             </div>
           `,
-          });
-          if(error){
-            console.log("error in resend" , error);
-          }
-          console.log("invite", invite);
-          console.log("data", data);
-        } catch (error) {
-          console.log("error in sending emails", error);
-          return NextResponse.json(
-            {
-              message: "resend server failed",
-              success: false,
-            },
-            { status: 411 },
-          );
-        }
-      }
+    }))
+    const {data , error} = await resend.batch.send(batch);
+    if(error){
+       console.log("error in resend" , error);
     }
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true , message : "the organization invitation has been sent"}, {status : 200});
   } catch (error) {
     console.log("error in qstash queue", error);
     return NextResponse.json(
