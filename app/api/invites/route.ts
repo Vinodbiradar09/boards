@@ -17,7 +17,7 @@ async function handler(req: Request) {
       data: emails.map((email : string)=>({
         email,
         organizationId : organization.id,
-        invitedBy : organization.ownerId,
+        invitedById : user.id,
       })),
       skipDuplicates: true,
     });
@@ -43,6 +43,8 @@ async function handler(req: Request) {
     const {data , error} = await resend.batch.send(batch);
     if(error){
        console.log("error in resend" , error);
+    }else {
+      console.log("data" ,data);
     }
     return NextResponse.json({ success: true , message : "the organization invitation has been sent"}, {status : 200});
   } catch (error) {
