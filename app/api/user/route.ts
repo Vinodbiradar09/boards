@@ -69,12 +69,27 @@ export async function POST(req: NextRequest) {
         { status: 400 },
       );
     }
-    const organization = await prisma.organization.create({
-      data: {
-        name: body.orgName,
-        ownerId: session,
-      },
-    });
+    // const organization = await prisma.organization.create({
+    //   data: {
+    //     name: body.orgName,
+    //     ownerId: session,
+    //   },
+    // });
+    let organization;
+    await prisma.$transaction(async( tx )=>{
+      organization = await tx.organization.create({
+        data : {
+          name : body.orgName,
+        }
+      })
+      await tx.user.update({
+        where : {
+          id : session,
+        },data : {
+          isAdmin : true,
+        }
+      })
+    })
 
     client.publishJSON({
       url: "https://nonobvious-runtishly-regine.ngrok-free.dev/api/invites",
@@ -106,4 +121,19 @@ export async function POST(req: NextRequest) {
       { status: 500 },
     );
   }
+}
+
+export function getBaseUrl(requestOrHeaders?: Request | Headers): string {
+  if (requestOrHeaders && "url" in requestOrHeaders) {
+    const url = new URL(requestOrHeaders.url);
+    return `${url.protocol}//${url.host}`;
+  }
+
+  if (requestOrHeaders && "get" in requestOrHeaders) {
+    const host = requestOrHeaders.get("host");
+    const protocol = requestOrHeaders.get("x-forwarded-proto") || "http";
+    return `${protocol}://${host}`;
+  }
+
+  return process.env.AUTH_URL || "http://localhost:3000";
 }

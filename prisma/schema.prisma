@@ -37,22 +37,6 @@ model Session {
   @@map("sessions")
 }
 
-model User {
-  id            String        @id @default(uuid())
-  name          String?
-  email         String        @unique
-  emailVerified DateTime?
-  image         String?
-  isAdmin       Boolean?       @default(false)
-  organization  Organization?
-  accounts      Account[]
-  sessions      Session[]
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-
-  @@map("users")
-}
-
 model VerificationToken {
   identifier String
   token      String   @unique
@@ -62,62 +46,75 @@ model VerificationToken {
   @@map("verification_tokens")
 }
 
+model User {
+  id                  String               @id @default(uuid())
+  name                String?
+  email               String               @unique
+  emailVerified       DateTime?
+  image               String?
+  isAdmin             Boolean              @default(false)
+  organizationId      String?
+  organization        Organization?        @relation(fields: [organizationId], references: [id])
+  assignedTasks       Task[]               @relation("AssignedTasks")
+  createdTasks        Task[]               @relation("CreatedTasks")
+  boardEntries        BoardEntry[]
+  accounts            Account[]
+  sessions            Session[]
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  organizationInvites OrganizationInvite[]
+
+  @@index([organizationId])
+}
+
 model Organization {
   id        String               @id @default(uuid())
   name      String
-  ownerId   String               @unique
-  owner     User                 @relation(fields: [ownerId], references: [id])
+  members   User[]
   invites   OrganizationInvite[]
-  members   TeamMember[]
   boards    Board[]
   createdAt DateTime             @default(now())
   updatedAt DateTime             @updatedAt
-
-  @@map("organization")
 }
 
 model OrganizationInvite {
-  id             String           @id @default(uuid())
+  id             String       @id @default(uuid())
   email          String
-  invitedBy      String
-  status         InvitationStatus @default(PENDING)
+  status         InviteStatus @default(PENDING)
   organizationId String
-  organization   Organization     @relation(fields: [organizationId], references: [id])
-  createdAt      DateTime         @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  invitedById    String
+  invitedBy      User         @relation(fields: [invitedById], references: [id])
+  createdAt      DateTime     @default(now())
 
   @@unique([email, organizationId])
-  @@map("organization_invites")
-}
-
-model TeamMember {
-  id             String       @id @default(uuid())
-  name           String
-  email          String       @unique
-  picture        String?
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id])
-  tasks          Task[]
-  boardEntries   BoardEntry[]
-  joinedAt       DateTime     @default(now())
 }
 
 model Task {
   id           String     @id @default(uuid())
-  job          String
-  points       Int // 0, 5, 10
-  status       TaskStatus
+  title        String
+  description  String
+  points       Int
+  status       TaskStatus @default(PENDING)
   expiresAt    DateTime
-  teamMemberId String
-  teamMember   TeamMember @relation(fields: [teamMemberId], references: [id])
   completedAt  DateTime?
+  // Assigned employee
+  assignedToId String
+  assignedTo   User       @relation("AssignedTasks", fields: [assignedToId], references: [id])
+  // Admin creator
+  createdById  String
+  createdBy    User       @relation("CreatedTasks", fields: [createdById], references: [id])
   createdAt    DateTime   @default(now())
+
+  @@index([assignedToId])
+  @@index([createdById])
 }
 
 model Board {
   id             String       @id @default(uuid())
   organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id])
-  month          Int // 1 - 12
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  month          Int
   year           Int
   entries        BoardEntry[]
   createdAt      DateTime     @default(now())
@@ -126,21 +123,22 @@ model Board {
 }
 
 model BoardEntry {
-  id          String     @id @default(uuid())
-  boardId     String
-  board       Board      @relation(fields: [boardId], references: [id])
-  memberId    String
-  member      TeamMember @relation(fields: [memberId], references: [id])
-  totalPoints Int
-  rank        Int // 1 = FIRST, 2 = SECOND, 3 = THIRD, rest = 4+
+  id      String @id @default(uuid())
+  boardId String
+  board   Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  userId  String
+  user    User   @relation(fields: [userId], references: [id])
+  points  Int
+  rank    Int
 
-  @@unique([boardId, memberId])
+  @@unique([boardId, userId])
+  @@index([userId])
 }
 
-enum InvitationStatus {
+enum InviteStatus {
   PENDING
   ACCEPTED
-  REJECTED
+  DECLINED
 }
 
 enum TaskStatus {
