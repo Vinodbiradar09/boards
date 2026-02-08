@@ -52,17 +52,5 @@ export async function GET() {
   }
 }
 
-export function getBaseUrl(requestOrHeaders?: Request | Headers): string {
-  if (requestOrHeaders && "url" in requestOrHeaders) {
-    const url = new URL(requestOrHeaders.url);
-    return `${url.protocol}//${url.host}`;
-  }
+// docker run -d -p 5432:5432 --name boards -e POSTGRES_USER=boards -e POSTGRES_PASSWORD=boards -e POSTGRES_DB=boards postgres
 
-  if (requestOrHeaders && "get" in requestOrHeaders) {
-    const host = requestOrHeaders.get("host");
-    const protocol = requestOrHeaders.get("x-forwarded-proto") || "http";
-    return `${protocol}://${host}`;
-  }
-
-  return process.env.AUTH_URL || "http://localhost:3000";
-}

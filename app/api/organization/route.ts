@@ -6,11 +6,11 @@ import { client } from "@/lib/qstash";
 export async function POST(req: NextRequest) {
   try {
     const session = await auth();
-    // const session = "f32c7918-8882-4b68-8188-02f0441ea681";
     if (!session?.user?.id) {
       return NextResponse.json({ success: false }, { status: 401 });
     }
     const body = await req.json();
+    console.log("body" , body);
     if (!Array.isArray(body.emails)) {
       return NextResponse.json(
         {

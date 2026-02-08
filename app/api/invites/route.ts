@@ -6,7 +6,7 @@ import { env } from "@/lib/types/env";
 
 async function handler(req: Request) {
   try {
-    const { emails, organization, user } = await req.json();
+    const { emails, organization, user , baseUrl } = await req.json();
     if (!Array.isArray(emails) || emails.length === 0) {
       return NextResponse.json({
         message: "please send emails in array",
@@ -30,7 +30,7 @@ async function handler(req: Request) {
               <h2>You&apos;re invited to join ${organization.name}!</h2>
               <p>${user.name} (${user.email}) has invited you to join their organization on Gumboard.</p>
               <p>Click the link below to accept the invitation:</p>
-              <a href="${"hello"}/invite/accept?token=${invite.id}"
+              <a href="${baseUrl}/invite/accept?token=${invite.id}"
                  style="background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
                 Accept Invitation
               </a>
