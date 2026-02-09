@@ -1,65 +1,103 @@
 import { auth } from "../auth/options";
 import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
-import { client } from "@/lib/qstash";
+import { z } from "zod";
+import { organizationSchema } from "@/lib/types";
 
-export async function POST(req: NextRequest) {
+export async function PUT(request: NextRequest) {
   try {
     const session = await auth();
+
     if (!session?.user?.id) {
-      return NextResponse.json({ success: false }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const body = await req.json();
-    console.log("body" , body);
-    if (!Array.isArray(body.emails)) {
+
+    const body = await request.json();
+
+    let validatedBody;
+    try {
+      validatedBody = organizationSchema.parse(body);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return NextResponse.json(
+          { error: "Validation failed", details: error },
+          { status: 400 }
+        );
+      }
+      throw error;
+    }
+
+    const { name, slackWebhookUrl } = validatedBody;
+
+    // Get user with organization
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        isAdmin: true,
+        organizationId: true,
+        organization: true,
+      },
+    });
+
+    if (!user?.organizationId) {
+      return NextResponse.json({ error: "No organization found" }, { status: 404 });
+    }
+
+    // Only admins can update organization name
+    if (!user.isAdmin) {
       return NextResponse.json(
-        {
-          message: "invalid playload",
-          success: false,
-        },
-        { status: 400 },
+        { error: "Only admins can update organization settings" },
+        { status: 403 }
       );
     }
-    let organization;
-    await prisma.$transaction(async( tx )=>{
-      organization = await tx.organization.create({
-        data : {
-          name : body.orgName,
-        }
-      })
-      await tx.user.update({
-        where : {
-          id : session.user?.id,
-        },data : {
-          isAdmin : true,
-        }
-      })
-    })
 
-    client.publishJSON({
-      url: "https://nonobvious-runtishly-regine.ngrok-free.dev/api/invites",
-      body: {
-        organization,
-        user : session.user,
-        emails : [... new Set(body.emails)],
+    // Update organization name and Slack webhook URL
+    await prisma.organization.update({
+      where: { id: user.organizationId },
+      data: {
+        name: name.trim(),
+        ...(slackWebhookUrl !== undefined && { slackWebhookUrl: slackWebhookUrl?.trim() || null }),
       },
-    }).catch(console.error);
-    return NextResponse.json(
-      {
-        message: "your organization has successfully created",
-        success: true,
-        organization,
+    });
+
+    // Return updated user data
+    const updatedUser = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      include: {
+        organization: {
+          include: {
+            members: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                isAdmin: true,
+              },
+            },
+          },
+        },
       },
-      { status: 200 },
-    );
+    });
+
+    return NextResponse.json({
+      id: updatedUser!.id,
+      name: updatedUser!.name,
+      email: updatedUser!.email,
+      isAdmin: updatedUser!.isAdmin,
+      organization: updatedUser!.organization
+        ? {
+            id: updatedUser!.organization.id,
+            name: updatedUser!.organization.name,
+            slackWebhookUrl: updatedUser!.organization.slackWebhookUrl,
+            members: updatedUser!.organization.members,
+          }
+        : null,
+    });
   } catch (error) {
-    console.log(error);
-    return NextResponse.json(
-      {
-        message: "internal server error",
-        success: false,
-      },
-      { status: 500 },
-    );
+    console.error("Error updating organization:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

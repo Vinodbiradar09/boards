@@ -2,55 +2,78 @@ import { auth } from "../auth/options";
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-
 export async function GET() {
   try {
     const session = await auth();
 
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { message: "Unauthorized", success: false },
-        { status: 401 },
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Get user with organization and members
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        isAdmin: true,
-        image: true,
+      include: {
         organization: {
-          select: {
-            id: true,
-            name: true,
+          include: {
+            members: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+                email: true,
+                isAdmin: true,
+              },
+            },
           },
         },
       },
     });
 
     if (!user) {
-      return NextResponse.json(
-        { message: "User not found", success: false },
-        { status: 404 },
-      );
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     return NextResponse.json({
-      message: "User found",
-      success: true,
-      user,
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      image: user.image,
+      isAdmin: user.isAdmin,
+      organization: user.organization
+        ? {
+            id: user.organization.id,
+            name: user.organization.name,
+            slackWebhookUrl: user.organization.slackWebhookUrl,
+            members: user.organization.members,
+          }
+        : null,
     });
   } catch (error) {
     console.error("Error fetching user:", error);
-    return NextResponse.json(
-      { message: "Internal server error", success: false },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
-// docker run -d -p 5432:5432 --name boards -e POSTGRES_USER=boards -e POSTGRES_PASSWORD=boards -e POSTGRES_DB=boards postgres
+export async function DELETE() {
+  try {
+    const session = await auth();
 
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const userId = session.user.id;
+
+    await prisma.$transaction([
+      prisma.organizationSelfServeInvite.deleteMany({ where: { createdBy: userId } }),
+      prisma.organizationInvite.deleteMany({ where: { invitedBy: userId } }),
+      prisma.user.delete({ where: { id: userId } }),
+    ]);
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}
