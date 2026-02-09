@@ -72,6 +72,7 @@ export default async function OrganizationSetup() {
   });
 
   if (user?.organization) {
+    console.log("organ" , user.organization);
     redirect("/dashboard");
   }
 
