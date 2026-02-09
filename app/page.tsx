@@ -1,33 +1,28 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { auth } from "../app/api/auth/options";
+import { auth } from "@/app/api/auth/options";
 import { Button } from "@/components/ui/button";
 import { StickyNote, Users, Building2 } from "lucide-react";
-// import { StickyNotesDemo } from "@/components/sticky-notes-demo";
+import { StickyNotesDemo } from "@/components/sticky-notes-demo";
 import { StatsSection } from "@/components/stats-section";
-import {
-  Card,
-  CardContent,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+import { Card, CardContent, CardTitle, CardDescription } from "@/components/ui/card";
 import Image from "next/image";
 import { BetaBadge } from "@/components/ui/beta-badge";
 
 const features = [
   {
     icon: StickyNote,
-    title: "leader board",
+    title: "Sticky notes & tasks",
     description:
-      "Create meaningfull leader board and assign points to track your team's progress.",
+      "Create colorful sticky notes with interactive checklists to track your team's progress.",
     iconBgColor: "bg-blue-100 dark:bg-blue-900/30",
     iconColor: "text-blue-600 dark:text-blue-400",
   },
   {
     icon: Users,
-    title: "collaboration and task",
+    title: "Real-time collaboration",
     description:
-      "Work together seamlessly with your team and assign tasks to them",
+      "Work together seamlessly with your team in real-time. See updates instantly as they happen.",
     iconBgColor: "bg-green-100 dark:bg-green-900/30",
     iconColor: "text-green-600 dark:text-green-400",
   },
@@ -57,23 +52,18 @@ export default async function HomePage() {
               <div className="flex flex-col justify-center space-y-6 lg:mt-14">
                 <div className="flex items-center gap-3">
                   <Link href="https://gumboard.com/" passHref>
-                    <Image
-                      src="/_.jpeg"
-                      alt="Board"
-                      width={50}
-                      height={50}
-                    />
+                    <Image src="/_.jpeg" alt="Board" width={50} height={50} />
                   </Link>
                   <span className="text-4xl font-bold">Board</span>
                   <BetaBadge />
                 </div>
                 <div className="space-y-2">
                   <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">
-                    Keep your employees on top of your team&apos; board.
+                    Keep on top of your team&apos;s to-dos.
                   </h1>
                   <p className="max-w-150 text-slate-600 md:text-xl dark:text-zinc-300">
-                    Board is the free, employee ranking system that helps
-                    your team stay aligned. Try the interactive demo And watch your employee to achieve tasks
+                    Board is the free, real-time sticky note board that helps your team stay
+                    aligned. Try the interactive demo—add notes, edit text, and complete tasks.
                   </p>
                 </div>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
@@ -82,13 +72,11 @@ export default async function HomePage() {
                     size="lg"
                     className="bg-blue-600 hover:bg-blue-700 text-white dark:bg-white dark:text-black dark:hover:bg-zinc-100"
                   >
-                    <Link href="/auth/signin">
-                      Get started - it&apos;s free
-                    </Link>
+                    <Link href="/auth/signin">Get started - it&apos;s free</Link>
                   </Button>
                 </div>
               </div>
-              {/* <StickyNotesDemo /> */}
+              <StickyNotesDemo />
             </div>
           </div>
         </section>
@@ -100,8 +88,8 @@ export default async function HomePage() {
                 Everything you need to stay organized
               </h2>
               <p className="text-slate-600 text-lg max-w-2xl mx-auto dark:text-zinc-300">
-                Board brings your team together with powerful collaboration
-                tools designed for modern workflows.
+                Gumboard brings your team together with powerful collaboration tools designed for
+                modern workflows.
               </p>
             </div>
 
@@ -117,9 +105,7 @@ export default async function HomePage() {
                       <div
                         className={`w-12 h-12 mx-auto mb-4 ${feature.iconBgColor} rounded-lg flex items-center justify-center`}
                       >
-                        <IconComponent
-                          className={`h-6 w-6 ${feature.iconColor}`}
-                        />
+                        <IconComponent className={`h-6 w-6 ${feature.iconColor}`} />
                       </div>
                       <CardTitle className="mb-2">{feature.title}</CardTitle>
                       <CardDescription className="dark:text-zinc-300">

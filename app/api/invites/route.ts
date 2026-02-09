@@ -17,7 +17,7 @@ async function handler(req: Request) {
       data: emails.map((email : string)=>({
         email,
         organizationId : organization.id,
-        invitedById : user.id,
+         invitedBy : user.id,
       })),
       skipDuplicates: true,
     });

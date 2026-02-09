@@ -155,7 +155,7 @@ export default async function InviteAcceptPage({
     where: { id: token },
     include: {
       organization: true,
-      invitedBy: true,
+      user: true,
     },
   });
 
@@ -197,7 +197,7 @@ export default async function InviteAcceptPage({
                   {invite.organization.name}
                 </CardTitle>
                 <CardDescription className="text-base text-muted-foreground dark:text-zinc-400">
-                  {invite.invitedBy.name || invite.invitedBy.email} has invited
+                  {invite.user.name || invite.user.email} has invited
                   you to join their organization
                 </CardDescription>
               </CardHeader>
@@ -313,7 +313,7 @@ export default async function InviteAcceptPage({
                 {invite.organization.name}
               </CardTitle>
               <CardDescription className="text-base text-muted-foreground dark:text-zinc-400">
-                {invite.invitedBy.name || invite.invitedBy.email} has invited you to join
+                {invite.user.name || invite.user.email} has invited you to join
                 their organization
               </CardDescription>
             </CardHeader>
