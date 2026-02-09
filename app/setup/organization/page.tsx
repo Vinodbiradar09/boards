@@ -41,7 +41,7 @@ const createOrganization = async (orgName: string, teamEmails: string[]) => {
    })
   });
   client.publishJSON({
-    url : "https://nonobvious-runtishly-regine.ngrok-free.dev/api/invites",
+    url : "https://boards1.vercel.app/api/invites",
     body : {
       organization,
       user : session.user,
