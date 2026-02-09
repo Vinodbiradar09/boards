@@ -240,14 +240,14 @@ export default async function JoinPage({ params }: JoinPageProps) {
         <div className="w-full max-w-md space-y-8">
           <div className="text-center space-y-3">
             <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">
-              Join {invite.organization.name} on Gumboard!
+              Join {invite.organization.name} on Board!
             </h1>
             <p className="text-lg text-slate-600 dark:text-slate-400">
               You&apos;ve been invited to join{" "}
               <span className="font-semibold text-slate-800 dark:text-slate-200">
                 {invite.organization.name}
               </span>{" "}
-              on Gumboard
+              on Board
             </p>
           </div>
           <Card className="border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-950">
@@ -346,14 +346,14 @@ export default async function JoinPage({ params }: JoinPageProps) {
       <div className="w-full max-w-md space-y-8">
         <div className="text-center space-y-4">
           <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 leading-tight">
-            Join {invite.organization.name} on Gumboard!
+            Join {invite.organization.name} on Board!
           </h1>
           <p className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed">
             You&apos;ve been invited to join{" "}
             <span className="font-semibold text-slate-800 dark:text-slate-200">
               {invite.organization.name}
             </span>{" "}
-            on Gumboard
+            on Board
           </p>
         </div>
         <Card className="border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-950 shadow-sm">

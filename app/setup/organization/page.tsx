@@ -30,11 +30,12 @@ const createOrganization = async (orgName: string, teamEmails: string[]) => {
       name : orgName,
     }
    });
-   await prisma.user.update({
+   await tx.user.update({
     where : {
       id : session.user?.id,
     },
     data : {
+      organizationId : organization.id,
       isAdmin : true,
     }
    })

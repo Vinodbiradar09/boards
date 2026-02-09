@@ -86,8 +86,8 @@ export default function Dashboard() {
   const fetchUserAndBoards = useCallback(async () => {
     try {
       const [userResponse, boardsResponse] = await Promise.all([
-        fetch("/api/user"),
-        fetch("/api/boards"),
+        await fetch("/api/user"),
+        await fetch("/api/boards"),
       ]);
 
       if (userResponse.status === 401) {
@@ -185,7 +185,7 @@ export default function Dashboard() {
           <div className="flex items-center">
             <div className="flex-shrink-0">
               <h1 className="text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400 flex items-center gap-2">
-                Gumboard
+                Board
                 <BetaBadge />
               </h1>
             </div>

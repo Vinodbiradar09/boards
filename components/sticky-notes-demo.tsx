@@ -18,13 +18,13 @@ const initialNotes: Note[] = [
     boardId: "demo-board",
     user: {
       id: "demo-user",
-      name: "Sahil",
-      email: "sahil@example.com",
+      name: "Piyush",
+      email: "Piyush@example.com",
     },
     checklistItems: [
       {
         id: "101",
-        content: "Gumboard release by Friday",
+        content: "Board release by Friday",
         checked: false,
         order: 0,
       },

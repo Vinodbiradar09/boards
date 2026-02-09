@@ -6,28 +6,24 @@ import { boardSchema } from "@/lib/types";
 
 export async function GET() {
   try {
+    console.log("heheheheheh");
     const session = await auth();
+
     if (!session?.user?.id) {
-      return NextResponse.json(
-        {
-          error: "unauthorized user",
-          success: false,
-        },
-        { status: 401 },
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       select: {
         organizationId: true,
       },
     });
+    console.log("user" , user);
     if (!user?.organizationId) {
-      return NextResponse.json(
-        { error: "No organization found", success: false },
-        { status: 404 },
-      );
+      return NextResponse.json({ error: "No organization found" }, { status: 404 });
     }
+
     const boards = await prisma.board.findMany({
       where: { organizationId: user.organizationId },
       select: {
@@ -64,6 +60,7 @@ export async function GET() {
       },
       orderBy: { createdAt: "desc" },
     });
+
     const boardsWithLastActivityTimestamp = boards.map((board) => ({
       id: board.id,
       name: board.name,
@@ -75,67 +72,62 @@ export async function GET() {
       _count: board._count,
       lastActivityAt: board.notes[0]?.updatedAt ?? board.updatedAt,
     }));
+    console.log("bi", boardsWithLastActivityTimestamp);
     return NextResponse.json({ boards: boardsWithLastActivityTimestamp });
   } catch (error) {
     console.error("Error fetching boards:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
-export async function POST(req: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
     const session = await auth();
+
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const body = await req.json();
+
+    const body = await request.json();
+
     let validatedBody;
     try {
-      validatedBody = await boardSchema
+      validatedBody = boardSchema
         .extend({
-          name: z
-            .string()
-            .min(
-              1,
-              "Board name is required and cannot be empty or only whitespac",
-            ),
+          name: z.string().min(1, "Board name is required and cannot be empty or only whitespace"),
         })
         .parse(body);
     } catch (error) {
       if (error instanceof z.ZodError) {
         return NextResponse.json(
           { error: "Validation failed", details: error },
-          { status: 400 },
+          { status: 400 }
         );
       }
       throw error;
     }
+
     const { name, description, isPublic } = validatedBody;
     const trimmedName = name.trim();
+
     const user = await prisma.user.findUnique({
-      where: {
-        id: session.user.id,
-      },
+      where: { id: session.user.id },
       select: {
-        organization: true,
+        organizationId: true,
       },
     });
 
-    if (!user?.organization) {
-      return NextResponse.json(
-        { error: "No organization found" },
-        { status: 404 },
-      );
+    if (!user?.organizationId) {
+      return NextResponse.json({ error: "No organization found" }, { status: 404 });
     }
+
+    // Create new board
     const board = await prisma.board.create({
       data: {
         name: trimmedName,
         description,
         isPublic: Boolean(isPublic),
-        organizationId: user.organization.id,
+        organizationId: user.organizationId,
         createdBy: session.user.id,
       },
       select: {
@@ -159,12 +151,10 @@ export async function POST(req: NextRequest) {
         },
       },
     });
+
     return NextResponse.json({ board }, { status: 201 });
   } catch (error) {
     console.error("Error creating board:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

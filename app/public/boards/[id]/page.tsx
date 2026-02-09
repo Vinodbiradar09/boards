@@ -111,7 +111,7 @@ export default function PublicBoardPage({ params }: { params: Promise<{ id: stri
           </p>
 
           <Button asChild variant="outline">
-            <Link href="/">Go to Gumboard</Link>
+            <Link href="/">Go to Board</Link>
           </Button>
         </div>
       </div>
@@ -125,7 +125,7 @@ export default function PublicBoardPage({ params }: { params: Promise<{ id: stri
           <div className="flex items-center space-x-3">
             <Link href="/" className="flex-shrink-0 pl-4 sm:pl-2 lg:pl-4">
               <h1 className="text-2xl font-bold text-blue-600 dark:text-blue-400 flex items-center gap-2">
-                Gumboard
+                Board
                 <BetaBadge />
               </h1>
             </Link>

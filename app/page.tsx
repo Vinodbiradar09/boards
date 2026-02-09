@@ -88,7 +88,7 @@ export default async function HomePage() {
                 Everything you need to stay organized
               </h2>
               <p className="text-slate-600 text-lg max-w-2xl mx-auto dark:text-zinc-300">
-                Gumboard brings your team together with powerful collaboration tools designed for
+                Board brings your team together with powerful collaboration tools designed for
                 modern workflows.
               </p>
             </div>

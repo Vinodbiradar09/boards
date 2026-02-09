@@ -677,7 +677,7 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-2">Board not found</h1>
           <Button asChild>
-            <Link href="/">Go to Gumboard</Link>
+            <Link href="/">Go to Board</Link>
           </Button>
         </div>
       </div>
@@ -692,7 +692,7 @@ export default function BoardPage({ params }: { params: Promise<{ id: string }> 
             {/* Company Name */}
             <Link href="/dashboard" className="flex-shrink-0 pl-1 w-fit">
               <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-3">
-                Gumboard
+                Board
                 <BetaBadge />
               </h1>
             </Link>
