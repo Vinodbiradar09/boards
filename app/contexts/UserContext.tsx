@@ -1,4 +1,5 @@
 "use client";
+
 import React, {
   useState,
   useEffect,
@@ -8,17 +9,21 @@ import React, {
   useCallback,
 } from "react";
 
-export interface User {
+export type Organization = {
+  id: string;
+  name: string;
+  slackWebhookUrl?: string | null;
+  members: User[];
+};
+
+export type User = {
   id: string;
   name: string | null;
   email: string;
+  image?: string | null;
   isAdmin?: boolean;
-  image?: string;
-  organization: {
-    id: string;
-    name: string;
-  };
-}
+  organization: Organization | null;
+};
 
 interface UserContextType {
   user: User | null;
@@ -27,9 +32,7 @@ interface UserContextType {
   refreshUser: () => Promise<void>;
 }
 
-export const UserContext = createContext<UserContextType | undefined>(
-  undefined,
-);
+const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -39,31 +42,36 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const fetchUser = useCallback(async () => {
     try {
       const response = await fetch("/api/user");
+
       if (response.status === 401) {
         setUser(null);
         setError(null);
         return;
       }
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
+
       const userData = await response.json();
       setUser(userData);
       setError(null);
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      setError(error instanceof Error ? error.message : "Failed to fetch user");
+    } catch (err) {
+      console.error("Error fetching user:", err);
+      setError(err instanceof Error ? err.message : "Failed to fetch user");
     } finally {
       setLoading(false);
     }
   }, []);
 
   const refreshUser = async () => {
-    fetchUser();
+    await fetchUser();
   };
+
   useEffect(() => {
     fetchUser();
   }, [fetchUser]);
+
   return (
     <UserContext.Provider value={{ user, loading, error, refreshUser }}>
       {children}
