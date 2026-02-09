@@ -1,0 +1,170 @@
+import { auth } from "../auth/options";
+import prisma from "@/lib/prisma";
+import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import { boardSchema } from "@/lib/types";
+
+export async function GET() {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        {
+          error: "unauthorized user",
+          success: false,
+        },
+        { status: 401 },
+      );
+    }
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: {
+        organizationId: true,
+      },
+    });
+    if (!user?.organizationId) {
+      return NextResponse.json(
+        { error: "No organization found", success: false },
+        { status: 404 },
+      );
+    }
+    const boards = await prisma.board.findMany({
+      where: { organizationId: user.organizationId },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        isPublic: true,
+        createdBy: true,
+        createdAt: true,
+        updatedAt: true,
+        _count: {
+          select: {
+            notes: {
+              where: {
+                deletedAt: null,
+                archivedAt: null,
+              },
+            },
+          },
+        },
+        notes: {
+          where: {
+            deletedAt: null,
+            archivedAt: null,
+          },
+          select: {
+            updatedAt: true,
+          },
+          orderBy: {
+            updatedAt: "desc",
+          },
+          take: 1,
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+    const boardsWithLastActivityTimestamp = boards.map((board) => ({
+      id: board.id,
+      name: board.name,
+      description: board.description,
+      isPublic: board.isPublic,
+      createdBy: board.createdBy,
+      createdAt: board.createdAt,
+      updatedAt: board.updatedAt,
+      _count: board._count,
+      lastActivityAt: board.notes[0]?.updatedAt ?? board.updatedAt,
+    }));
+    return NextResponse.json({ boards: boardsWithLastActivityTimestamp });
+  } catch (error) {
+    console.error("Error fetching boards:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
+  }
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const body = await req.json();
+    let validatedBody;
+    try {
+      validatedBody = await boardSchema
+        .extend({
+          name: z
+            .string()
+            .min(
+              1,
+              "Board name is required and cannot be empty or only whitespac",
+            ),
+        })
+        .parse(body);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return NextResponse.json(
+          { error: "Validation failed", details: error },
+          { status: 400 },
+        );
+      }
+      throw error;
+    }
+    const { name, description, isPublic } = validatedBody;
+    const trimmedName = name.trim();
+    const user = await prisma.user.findUnique({
+      where: {
+        id: session.user.id,
+      },
+      select: {
+        organization: true,
+      },
+    });
+
+    if (!user?.organization) {
+      return NextResponse.json(
+        { error: "No organization found" },
+        { status: 404 },
+      );
+    }
+    const board = await prisma.board.create({
+      data: {
+        name: trimmedName,
+        description,
+        isPublic: Boolean(isPublic),
+        organizationId: user.organization.id,
+        createdBy: session.user.id,
+      },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        isPublic: true,
+        createdBy: true,
+        createdAt: true,
+        updatedAt: true,
+        organizationId: true,
+        _count: {
+          select: {
+            notes: {
+              where: {
+                deletedAt: null,
+                archivedAt: null,
+              },
+            },
+          },
+        },
+      },
+    });
+    return NextResponse.json({ board }, { status: 201 });
+  } catch (error) {
+    console.error("Error creating board:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
+  }
+}
